@@ -1,6 +1,6 @@
-const BASE_URL = "http://localhost:5000/api/users";
-const DEPS_URL = "http://localhost:5000/api/deps";
-const ATTENDANCE_URL = "http://localhost:5000/api/attendance";
+const BASE_URL = "https://attendance-system-deot.vercel.app/api/users";
+const DEPS_URL = "https://attendance-system-deot.vercel.app/api/deps";
+const ATTENDANCE_URL = "https://attendance-system-deot.vercel.app/api/attendance";
 
 export async function fetchUsers() {
   const res = await fetch(BASE_URL);
