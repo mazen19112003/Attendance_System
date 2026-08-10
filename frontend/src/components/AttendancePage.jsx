@@ -7,6 +7,7 @@ import {
   saveNotes,
   fetchByDay,
   fetchLastExit,
+  deleteAttendance
 } from "../api";
 
 function todayStr() {
@@ -202,7 +203,36 @@ export default function AttendancePage() {
       setNotesLoading(false);
     }
   };
+const handleDeleteAttendance = async () => {
+  if (!selectedUser || !sheetDate) {
+    setError("من فضلك اختار الموظف والتاريخ");
+    return;
+  }
 
+  const currentUser = users.find((u) => u._id === selectedUser);
+
+  const confirmed = window.confirm(
+    `هل أنت متأكد من حذف سجل ${currentUser?.name || "الموظف"} في ${sheetDate}؟\n\nسيتم حذف وقت الدخول والخروج والملاحظات.`
+  );
+
+  if (!confirmed) return;
+
+  setActionLoading(true);
+  setError("");
+
+  try {
+    await deleteAttendance(selectedUser, sheetDate);
+
+    setNotesValue("");
+    setLastExitInfo(null);
+
+    await loadRecords(sheetDate);
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setActionLoading(false);
+  }
+};
   const handlePrint = () => window.print();
 
   const handleExportExcel = () => {
@@ -360,7 +390,14 @@ export default function AttendancePage() {
             </button>
           </form>
         )}
-
+        <button
+          className="submit-btn delete-btn"
+          type="button"
+          onClick={handleDeleteAttendance}
+          disabled={actionLoading || !selectedUser}
+        >
+          {actionLoading ? "جاري الحذف..." : "🗑️ مسح سجل اليوم"}
+        </button>
         <div className="form-row notes-row">
           <label htmlFor="notes">ملاحظات على {sheetDate}</label>
           <textarea

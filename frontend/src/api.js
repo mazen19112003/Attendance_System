@@ -2,6 +2,10 @@ const BASE_URL = "https://attendance-system-deot.vercel.app/api/users";
 const DEPS_URL = "https://attendance-system-deot.vercel.app/api/deps";
 const ATTENDANCE_URL = "https://attendance-system-deot.vercel.app/api/attendance";
 
+// const BASE_URL = "http://localhost:5000/api/users";
+// const DEPS_URL = "http://localhost:5000/api/deps";
+// const ATTENDANCE_URL = "http://localhost:5000/api/attendance";
+
 export async function fetchUsers() {
   const res = await fetch(BASE_URL);
   const data = await res.json();
@@ -108,4 +112,18 @@ export async function fetchAllAttendance() {
   const data = await res.json();
   if (!data.success) throw new Error(data.message || "حصل خطأ في جلب السجلات");
   return data.data;
+}
+
+export async function deleteAttendance(userId, day) {
+  const res = await fetch(`${ATTENDANCE_URL}/${userId}/${day}`, {
+    method: "DELETE",
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "حصل خطأ أثناء حذف السجل");
+  }
+
+  return data;
 }

@@ -208,6 +208,43 @@ const getAllAttendance = async (req, res) => {
   }
 };
 
+const deleteAttendance = async (req, res) => {
+  try {
+    const { userId, day } = req.params;
+
+    if (!userId || !day) {
+      return res.status(400).json({
+        success: false,
+        message: "من فضلك اختار الموظف والتاريخ",
+      });
+    }
+
+    const record = await Attendance.findOneAndDelete({
+      user: userId,
+      day,
+    });
+
+    if (!record) {
+      return res.status(404).json({
+        success: false,
+        message: "مفيش سجل حضور للموظف ده في اليوم ده",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "تم حذف سجل الحضور بنجاح",
+      data: record,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "حصل خطأ في السيرفر",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   setExit,
   setEntry,
@@ -215,4 +252,5 @@ module.exports = {
   getLastExit,
   getByDay,
   getAllAttendance,
+  deleteAttendance
 };

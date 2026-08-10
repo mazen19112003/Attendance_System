@@ -568,3 +568,12 @@ body {
   margin: 0 0 20px;
   color: #2d4f3d;
 }
+
+.delete-btn {
+  background-color: #dc2626;
+  margin-top: 10px;
+}
+
+.delete-btn:hover {
+  background-color: #b91c1c;
+}
