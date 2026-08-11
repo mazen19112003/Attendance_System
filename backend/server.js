@@ -7,8 +7,8 @@ require("dotenv").config();
 const userRoutes = require("./routes/userRoutes");
 const depRoutes = require("./routes/DepRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
-const authRoutes = require("./routes/authRoutes");
-const { protect } = require("./middleware/authMiddleware");
+const authRoutes = require("./routes/Authroutes");
+const { protect } = require("./middleware/Authmiddleware");
  
 const app = express();
  
