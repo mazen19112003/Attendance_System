@@ -208,33 +208,50 @@ const getAllAttendance = async (req, res) => {
   }
 };
 
-const deleteAttendance = async (req, res) => {
+// @desc    حذف سجل يوم كامل لموظف (خروج/دخول/ملاحظات كلهم)
+// @route   DELETE /api/attendance/:id
+const deleteRecord = async (req, res) => {
   try {
-    const { userId, day } = req.params;
-
-    if (!userId || !day) {
-      return res.status(400).json({
-        success: false,
-        message: "من فضلك اختار الموظف والتاريخ",
-      });
-    }
-
-    const record = await Attendance.findOneAndDelete({
-      user: userId,
-      day,
-    });
+    const { id } = req.params;
+    const record = await Attendance.findByIdAndDelete(id);
 
     if (!record) {
       return res.status(404).json({
         success: false,
-        message: "مفيش سجل حضور للموظف ده في اليوم ده",
+        message: "السجل ده مش موجود",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "تم حذف سجل الحضور بنجاح",
-      data: record,
+      message: "تم حذف السجل بنجاح",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "حصل خطأ في السيرفر",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    حذف سجل يوم موظف معين عن طريق الموظف والتاريخ (بدل الـ id)
+// @route   DELETE /api/attendance/user/:userId/day/:day
+const deleteByUserDay = async (req, res) => {
+  try {
+    const { userId, day } = req.params;
+    const record = await Attendance.findOneAndDelete({ user: userId, day });
+
+    if (!record) {
+      return res.status(404).json({
+        success: false,
+        message: "مفيش سجل لليوزر ده في اليوم ده",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "تم حذف السجل بنجاح",
     });
   } catch (error) {
     res.status(500).json({
@@ -252,5 +269,6 @@ module.exports = {
   getLastExit,
   getByDay,
   getAllAttendance,
-  deleteAttendance
+  deleteRecord,
+  deleteByUserDay,
 };

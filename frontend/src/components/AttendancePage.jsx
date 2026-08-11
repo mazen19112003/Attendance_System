@@ -7,7 +7,8 @@ import {
   saveNotes,
   fetchByDay,
   fetchLastExit,
-  deleteAttendance
+  deleteAttendance,
+  deleteAttendanceRecord,
 } from "../api";
 
 function todayStr() {
@@ -61,6 +62,62 @@ function formatLastExit(iso) {
   return formatDateTime(iso);
 }
 
+function toTimeInputValue(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const h = String(d.getHours()).padStart(2, "0");
+  const m = String(d.getMinutes()).padStart(2, "0");
+  return `${h}:${m}`;
+}
+
+function ReportTable({ records, editable, onEdit, onDelete }) {
+  return (
+    <div className="table-wrap">
+      <table className="report-table">
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>الاسم</th>
+            <th>القسم</th>
+            <th>وقت الخروج</th>
+            <th>وقت الدخول</th>
+            <th>آخر خروج ليه</th>
+            <th>ملاحظات</th>
+            {editable && <th className="no-print">إجراءات</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {records.map((r) => (
+            <tr key={r._id}>
+              <td>{r.day}</td>
+              <td>{r.name}</td>
+              <td>{r.department || "—"}</td>
+              <td>{formatTime(r.exitTime)}</td>
+              <td>{formatTime(r.entryTime)}</td>
+              <td>{formatLastExit(r.previousExitTime)}</td>
+              <td>{r.notes || "—"}</td>
+              {editable && (
+                <td className="no-print row-actions-cell">
+                  <button className="icon-btn" type="button" onClick={() => onEdit(r)}>
+                    تعديل
+                  </button>
+                  <button
+                    className="icon-btn delete-btn"
+                    type="button"
+                    onClick={() => onDelete(r)}
+                  >
+                    حذف
+                  </button>
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function AttendancePage() {
   const [sheetDate, setSheetDate] = useState(todayStr());
 
@@ -81,6 +138,7 @@ export default function AttendancePage() {
 
   const [records, setRecords] = useState([]);
   const [recordsLoading, setRecordsLoading] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
 
   const [error, setError] = useState("");
 
@@ -178,10 +236,8 @@ export default function AttendancePage() {
     try {
       const iso = `${manualDate}T00:00:00`;
       await recordExit({ userId: selectedUser, day: manualDate, exitTime: iso });
-      // نحدث النتيجة على طول عشان يظهر التاريخ اللي دخلناه دلوقتي
       const currentUser = users.find((u) => u._id === selectedUser);
       setLastExitInfo({ name: currentUser ? currentUser.name : "", exitTime: iso });
-      // بنحدث ريبورت اليوم المعروض دايمًا، عشان عمود "آخر خروج ليه" ممكن يتأثر بالسجل الجديد
       await loadRecords(sheetDate);
     } catch (err) {
       setError(err.message);
@@ -203,36 +259,64 @@ export default function AttendancePage() {
       setNotesLoading(false);
     }
   };
-const handleDeleteAttendance = async () => {
-  if (!selectedUser || !sheetDate) {
-    setError("من فضلك اختار الموظف والتاريخ");
-    return;
-  }
 
-  const currentUser = users.find((u) => u._id === selectedUser);
+  const handleDeleteAttendance = async () => {
+    if (!selectedUser || !sheetDate) {
+      setError("من فضلك اختار الموظف والتاريخ");
+      return;
+    }
 
-  const confirmed = window.confirm(
-    `هل أنت متأكد من حذف سجل ${currentUser?.name || "الموظف"} في ${sheetDate}؟\n\nسيتم حذف وقت الدخول والخروج والملاحظات.`
-  );
+    const currentUser = users.find((u) => u._id === selectedUser);
 
-  if (!confirmed) return;
+    const confirmed = window.confirm(
+      `هل أنت متأكد من حذف سجل ${currentUser?.name || "الموظف"} في ${sheetDate}؟\n\nسيتم حذف وقت الدخول والخروج والملاحظات.`
+    );
 
-  setActionLoading(true);
-  setError("");
+    if (!confirmed) return;
 
-  try {
-    await deleteAttendance(selectedUser, sheetDate);
+    setActionLoading(true);
+    setError("");
 
-    setNotesValue("");
-    setLastExitInfo(null);
+    try {
+      await deleteAttendance(selectedUser, sheetDate);
+      setNotesValue("");
+      setLastExitInfo(null);
+      await loadRecords(sheetDate);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
-    await loadRecords(sheetDate);
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setActionLoading(false);
-  }
-};
+  const handleEditRow = (record) => {
+    setSelectedUser(record.user);
+    if (record.exitTime) {
+      setMode("exit");
+      setTimeValue(toTimeInputValue(record.exitTime));
+    } else if (record.entryTime) {
+      setMode("entry");
+      setTimeValue(toTimeInputValue(record.entryTime));
+    } else {
+      setMode("exit");
+      setTimeValue("");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDeleteRow = async (record) => {
+    const confirmed = window.confirm(`هل أنت متأكد من حذف سجل ${record.name} في ${record.day}؟`);
+    if (!confirmed) return;
+
+    setError("");
+    try {
+      await deleteAttendanceRecord(record._id);
+      await loadRecords(sheetDate);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const handlePrint = () => window.print();
 
   const handleExportExcel = () => {
@@ -390,6 +474,7 @@ const handleDeleteAttendance = async () => {
             </button>
           </form>
         )}
+
         <button
           className="submit-btn delete-btn"
           type="button"
@@ -398,6 +483,7 @@ const handleDeleteAttendance = async () => {
         >
           {actionLoading ? "جاري الحذف..." : "🗑️ مسح سجل اليوم"}
         </button>
+
         <div className="form-row notes-row">
           <label htmlFor="notes">ملاحظات على {sheetDate}</label>
           <textarea
@@ -426,6 +512,14 @@ const handleDeleteAttendance = async () => {
             <button className="submit-btn print-btn" type="button" onClick={handleExportExcel}>
               تصدير Excel
             </button>
+            <button
+              className="submit-btn print-btn secondary-btn"
+              type="button"
+              onClick={() => setShowPreview(true)}
+              disabled={records.length === 0}
+            >
+              معاينة
+            </button>
             <button className="submit-btn print-btn" type="button" onClick={handlePrint}>
               طباعة
             </button>
@@ -437,36 +531,38 @@ const handleDeleteAttendance = async () => {
         ) : records.length === 0 ? (
           <div className="empty-state no-print">لسه مفيش أي تسجيل في اليوم ده</div>
         ) : (
-          <div className="table-wrap">
-            <table className="report-table">
-              <thead>
-                <tr>
-                  <th>التاريخ</th>
-                  <th>الاسم</th>
-                  <th>القسم</th>
-                  <th>وقت الخروج</th>
-                  <th>وقت الدخول</th>
-                  <th>آخر خروج ليه</th>
-                  <th>ملاحظات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {records.map((r) => (
-                  <tr key={r._id}>
-                    <td>{r.day}</td>
-                    <td>{r.name}</td>
-                    <td>{r.department || "—"}</td>
-                    <td>{formatTime(r.exitTime)}</td>
-                    <td>{formatTime(r.entryTime)}</td>
-                    <td>{formatLastExit(r.previousExitTime)}</td>
-                    <td>{r.notes || "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ReportTable
+            records={records}
+            editable
+            onEdit={handleEditRow}
+            onDelete={handleDeleteRow}
+          />
         )}
       </div>
+
+      {showPreview && (
+        <div className="modal-overlay no-print" onClick={() => setShowPreview(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <span>معاينة تقرير يوم {formatDayLabel(sheetDate)}</span>
+              <button className="modal-close" onClick={() => setShowPreview(false)}>
+                ✕
+              </button>
+            </div>
+
+            <ReportTable records={records} />
+
+            <div className="modal-footer">
+              <button className="submit-btn secondary-btn" onClick={() => setShowPreview(false)}>
+                إغلاق
+              </button>
+              <button className="submit-btn" onClick={handlePrint}>
+                طباعة
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

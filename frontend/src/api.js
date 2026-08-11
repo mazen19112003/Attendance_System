@@ -6,13 +6,14 @@ const ATTENDANCE_URL = "https://attendance-system-deot.vercel.app/api/attendance
 // const DEPS_URL = "http://localhost:5000/api/deps";
 // const ATTENDANCE_URL = "http://localhost:5000/api/attendance";
 
+
 export async function fetchUsers() {
   const res = await fetch(BASE_URL);
   const data = await res.json();
   if (!data.success) throw new Error(data.message || "حصل خطأ في جلب اليوزرز");
   return data.data;
 }
-
+ 
 export async function addUser({ name, department }) {
   const res = await fetch(BASE_URL, {
     method: "POST",
@@ -23,7 +24,7 @@ export async function addUser({ name, department }) {
   if (!data.success) throw new Error(data.message || "حصل خطأ في إضافة اليوزر");
   return data.data;
 }
-
+ 
 export async function updateUser(id, { name, department }) {
   const res = await fetch(`${BASE_URL}/${id}`, {
     method: "PUT",
@@ -34,21 +35,21 @@ export async function updateUser(id, { name, department }) {
   if (!data.success) throw new Error(data.message || "حصل خطأ في تعديل اليوزر");
   return data.data;
 }
-
+ 
 export async function deleteUser(id) {
   const res = await fetch(`${BASE_URL}/${id}`, { method: "DELETE" });
   const data = await res.json();
   if (!data.success) throw new Error(data.message || "حصل خطأ في حذف اليوزر");
   return true;
 }
-
+ 
 export async function fetchDepartments() {
   const res = await fetch(DEPS_URL);
   const data = await res.json();
   if (!data.success) throw new Error(data.message || "حصل خطأ في جلب الأقسام");
   return data.data;
 }
-
+ 
 export async function addDepartment(Depname) {
   const res = await fetch(DEPS_URL, {
     method: "POST",
@@ -59,7 +60,14 @@ export async function addDepartment(Depname) {
   if (!data.success) throw new Error(data.message || "حصل خطأ في إضافة القسم");
   return data.data;
 }
-
+ 
+export async function deleteDepartment(id) {
+  const res = await fetch(`${DEPS_URL}/${id}`, { method: "DELETE" });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message || "حصل خطأ في حذف القسم");
+  return true;
+}
+ 
 export async function recordExit({ userId, day, exitTime }) {
   const res = await fetch(`${ATTENDANCE_URL}/exit`, {
     method: "POST",
@@ -70,7 +78,7 @@ export async function recordExit({ userId, day, exitTime }) {
   if (!data.success) throw new Error(data.message || "حصل خطأ في تسجيل الخروج");
   return data.data;
 }
-
+ 
 export async function recordEntry({ userId, day, entryTime }) {
   const res = await fetch(`${ATTENDANCE_URL}/entry`, {
     method: "POST",
@@ -81,7 +89,7 @@ export async function recordEntry({ userId, day, entryTime }) {
   if (!data.success) throw new Error(data.message || "حصل خطأ في تسجيل الدخول");
   return data.data;
 }
-
+ 
 export async function saveNotes({ userId, day, notes }) {
   const res = await fetch(`${ATTENDANCE_URL}/notes`, {
     method: "POST",
@@ -92,38 +100,40 @@ export async function saveNotes({ userId, day, notes }) {
   if (!data.success) throw new Error(data.message || "حصل خطأ في حفظ الملاحظة");
   return data.data;
 }
-
+ 
 export async function fetchLastExit(userId) {
   const res = await fetch(`${ATTENDANCE_URL}/last/${userId}`);
   const data = await res.json();
   if (!data.success) throw new Error(data.message || "حصل خطأ في جلب آخر خروج");
   return data.data; // null لو مفيش سجل قبل كده
 }
-
+ 
 export async function fetchByDay(day) {
   const res = await fetch(`${ATTENDANCE_URL}/day/${day}`);
   const data = await res.json();
   if (!data.success) throw new Error(data.message || "حصل خطأ في جلب سجلات اليوم ده");
   return data.data;
 }
-
+ 
 export async function fetchAllAttendance() {
   const res = await fetch(ATTENDANCE_URL);
   const data = await res.json();
   if (!data.success) throw new Error(data.message || "حصل خطأ في جلب السجلات");
   return data.data;
 }
-
+ 
+export async function deleteAttendanceRecord(id) {
+  const res = await fetch(`${ATTENDANCE_URL}/${id}`, { method: "DELETE" });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message || "حصل خطأ في حذف السجل");
+  return true;
+}
+ 
 export async function deleteAttendance(userId, day) {
-  const res = await fetch(`${ATTENDANCE_URL}/${userId}/${day}`, {
+  const res = await fetch(`${ATTENDANCE_URL}/user/${userId}/day/${day}`, {
     method: "DELETE",
   });
-
   const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.message || "حصل خطأ أثناء حذف السجل");
-  }
-
-  return data;
+  if (!data.success) throw new Error(data.message || "حصل خطأ في حذف السجل");
+  return true;
 }
