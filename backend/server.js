@@ -14,6 +14,17 @@ const app = express();
  
 // Middlewares
 app.use(cors()); // مفتوح لأي دومين، عشان يشتغل مع أي رابط فرونت (زي Cloudflare Pages) من غير أي إعداد إضافي
+app.use(cors({
+  origin: [
+    "https://attendance-system-e9y.pages.dev",
+    "http://localhost:5173"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+app.options("*", cors());
+
 app.use(express.json());
  
 // Routes
