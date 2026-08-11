@@ -179,6 +179,16 @@ body {
   flex-shrink: 0;
 }
 
+.logout-item {
+  margin-top: auto;
+  color: #b3543c;
+}
+
+.logout-item:hover {
+  background: #fbe9e3;
+  color: #b3543c;
+}
+
 .main-content {
   flex: 1;
   min-width: 0;
@@ -425,6 +435,38 @@ body {
 .modal-footer .submit-btn {
   width: auto;
   padding: 10px 22px;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: "Cairo", sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--sage-deep);
+  margin-bottom: 6px;
+}
+
+.login-subtitle {
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 14px;
+  margin: 0 0 22px;
 }
 
 .icon-btn {

@@ -1,26 +1,26 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
+require("dotenv").config();
+ 
 const userRoutes = require("./routes/userRoutes");
-const DepRoutes = require("./routes/DepRoutes");
+const depRoutes = require("./routes/depRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
-
+const authRoutes = require("./routes/authRoutes");
+const { protect } = require("./middleware/authMiddleware");
+ 
 const app = express();
-
-app.use(cors());
+ 
+// Middlewares
+app.use(cors()); // مفتوح لأي دومين، عشان يشتغل مع أي رابط فرونت (زي Cloudflare Pages) من غير أي إعداد إضافي
 app.use(express.json());
-
-// Test route
-app.get("/", (req, res) => {
-    res.json({
-        message: "Attendance System API is running"
-    });
-});
-
-// API Routes
-app.use("/api/users", userRoutes);
-app.use("/api/deps", DepRoutes);
-app.use("/api/attendance", attendanceRoutes);
+ 
+// Routes
+app.use("/api/auth", authRoutes); // ده مش محمي، عشان تقدر تسجل دخول أصلاً
+app.use("/api/users", protect, userRoutes);
+app.use("/api/deps", protect, depRoutes);
+app.use("/api/attendance", protect, attendanceRoutes);
 
 // MongoDB connection
 mongoose

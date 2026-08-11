@@ -39,7 +39,7 @@ const NAV_ITEMS = [
   },
 ];
 
-export default function Sidebar({ active, onChange }) {
+export default function Sidebar({ active, onChange, onLogout }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -59,6 +59,21 @@ export default function Sidebar({ active, onChange }) {
           </button>
         ))}
       </nav>
+
+      <button className="nav-item logout-item" onClick={onLogout}>
+        <span className="nav-icon">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M15 17l5-5-5-5M20 12H9M12 19H6a2 2 0 01-2-2V7a2 2 0 012-2h6"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+        <span>تسجيل خروج</span>
+      </button>
     </aside>
   );
 }

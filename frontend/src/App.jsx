@@ -5,10 +5,12 @@ import UserList from "./components/UserList";
 import DepForm from "./components/DepForm";
 import DepList from "./components/DepList";
 import AttendancePage from "./components/AttendancePage";
-import { fetchUsers, fetchDepartments } from "./api";
+import LoginPage from "./components/Loginpage ";
+import { fetchUsers, fetchDepartments, getToken, logout } from "./api";
 
 export default function App() {
-  const [tab, setTab] = useState("users"); // "users" | "departments"
+  const [isLoggedIn, setIsLoggedIn] = useState(!!getToken());
+  const [tab, setTab] = useState("users"); // "users" | "departments" | "attendance"
 
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
@@ -17,9 +19,10 @@ export default function App() {
   const [depsLoading, setDepsLoading] = useState(true);
 
   useEffect(() => {
+    if (!isLoggedIn) return;
     loadUsers();
     loadDepartments();
-  }, []);
+  }, [isLoggedIn]);
 
   const loadUsers = async () => {
     try {
@@ -47,9 +50,18 @@ export default function App() {
     setUsers((prev) => [...prev, newUser]);
   };
 
+  const handleLogout = () => {
+    logout();
+    setIsLoggedIn(false);
+  };
+
+  if (!isLoggedIn) {
+    return <LoginPage onLoggedIn={() => setIsLoggedIn(true)} />;
+  }
+
   return (
     <div className="app-shell">
-      <Sidebar active={tab} onChange={setTab} />
+      <Sidebar active={tab} onChange={setTab} onLogout={handleLogout} />
 
       <main className="main-content">
         <div className="page">
@@ -73,14 +85,14 @@ export default function App() {
           {tab === "users" && (
             <>
               <UserForm onAdded={handleUserAdded} />
-              <UserList users={users} loading={usersLoading} />
+              <UserList users={users} loading={usersLoading} onChanged={loadUsers} />
             </>
           )}
 
           {tab === "departments" && (
             <>
               <DepForm onAdded={loadDepartments} />
-              <DepList departments={departments} loading={depsLoading} />
+              <DepList departments={departments} loading={depsLoading} onChanged={loadDepartments} />
             </>
           )}
 
