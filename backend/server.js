@@ -5,7 +5,7 @@ const path = require("path");
 require("dotenv").config();
  
 const userRoutes = require("./routes/userRoutes");
-const depRoutes = require("./routes/depRoutes");
+const depRoutes = require("./routes/DepRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 const authRoutes = require("./routes/authRoutes");
 const { protect } = require("./middleware/authMiddleware");
